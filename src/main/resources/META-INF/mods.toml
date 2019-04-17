@@ -1,0 +1,25 @@
+modLoader="javafml" #mandatory
+loaderVersion="[25,)" #mandatory
+issueTrackerURL="https://github.com/bl4ckscor3/Wrenchest/issues"
+displayURL="http://minecraft.curseforge.com/projects/wrenchest"
+authors="bl4ckscor3"
+
+[[mods]] #mandatory
+modId="wrenchest" #mandatory
+version="v1.0" #mandatory
+displayName="Wrenchest" #mandatory
+description='''Makes it easy to connect chests together!''' #mandatory
+
+[[dependencies.chestconnector]]
+    modId="forge"
+    mandatory=true
+    versionRange="[25,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.chestconnector]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.13.2]"
+    ordering="NONE"
+    side="BOTH"
