@@ -80,28 +80,28 @@ public class Wrenchest
 						//the chests are facing (away from) each other
 						if((ctx.getFace() == facing || ctx.getFace() == otherFacing) && facing.getOpposite() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.func_221532_j().x % 1, ctx.func_221532_j().z % 1, true))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, true))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has the other chest to its left/right
 						else if(ctx.getFace().rotateY() == facing || ctx.getFace().rotateYCCW() == facing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.func_221532_j().x % 1, ctx.func_221532_j().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has its neighbor to the front/back
 						else if(ctx.getFace().rotateY() == otherFacing || ctx.getFace().rotateYCCW() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), otherFacing, ctx.func_221532_j().x % 1, ctx.func_221532_j().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), otherFacing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the chests are facing in the same direction, but are placed behind each other. the case where they are standing next to each other facing the same direction is covered before
 						else if(facing == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing.rotateY(), ctx.func_221532_j().x % 1, ctx.func_221532_j().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing.rotateY(), ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
