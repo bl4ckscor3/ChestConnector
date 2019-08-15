@@ -38,7 +38,7 @@ public class Wrenchest
 			@Override
 			public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext ctx)
 			{
-				ActionResultType result = checkConnections(stack, ctx);
+				ActionResultType result = checkConnections(ctx);
 
 				if(result == ActionResultType.SUCCESS && !ctx.getPlayer().isCreative())
 					stack.damageItem(1, ctx.getPlayer(), p -> {});
@@ -50,7 +50,7 @@ public class Wrenchest
 			 * Checks which way two chests might be facing each other and then connects them
 			 * @see Item#onItemUseFirst
 			 */
-			private ActionResultType checkConnections(ItemStack stack, ItemUseContext ctx)
+			private ActionResultType checkConnections(ItemUseContext ctx)
 			{
 				if(!(ctx.getWorld().getBlockState(ctx.getPos()).getBlock() instanceof ChestBlock))
 					return ActionResultType.PASS;
@@ -59,7 +59,8 @@ public class Wrenchest
 				BlockPos pos = ctx.getPos();
 				BlockState chestState = world.getBlockState(pos);
 
-				if(chestState.get(ChestBlock.TYPE) != ChestType.SINGLE) //disconnect double chests
+				//disconnect double chests
+				if(chestState.get(ChestBlock.TYPE) != ChestType.SINGLE)
 				{
 					Direction facingTowardsOther = ChestBlock.getDirectionToAttached(chestState);
 
@@ -67,7 +68,8 @@ public class Wrenchest
 					world.setBlockState(pos.offset(facingTowardsOther), world.getBlockState(pos.offset(facingTowardsOther)).with(ChestBlock.TYPE, ChestType.SINGLE));
 					return ActionResultType.SUCCESS;
 				}
-				else if(ctx.getFace() != Direction.UP && ctx.getFace() != Direction.DOWN) //connect single chests, UP/DOWN check is here so double chests can be disconected by clicking on all faces
+				//connect single chests, UP/DOWN check is here so double chests can be disconnected by clicking on all faces
+				else if(ctx.getFace() != Direction.UP && ctx.getFace() != Direction.DOWN)
 				{
 					BlockPos otherPos = pos.offset(ctx.getFace());
 					BlockState otherState = world.getBlockState(otherPos);
