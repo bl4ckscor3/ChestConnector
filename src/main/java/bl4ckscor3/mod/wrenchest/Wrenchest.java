@@ -12,6 +12,7 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -82,28 +83,28 @@ public class Wrenchest
 						//the chests are facing (away from) each other
 						if((ctx.getFace() == facing || ctx.getFace() == otherFacing) && facing.getOpposite() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, true))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), true))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has the other chest to its left/right
 						else if(ctx.getFace().rotateY() == facing || ctx.getFace().rotateYCCW() == facing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has its neighbor to the front/back
 						else if(ctx.getFace().rotateY() == otherFacing || ctx.getFace().rotateYCCW() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), otherFacing, ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), otherFacing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the chests are facing in the same direction, but are placed behind each other. the case where they are standing next to each other facing the same direction is covered before
 						else if(facing == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing.rotateY(), ctx.getHitVec().x % 1, ctx.getHitVec().z % 1, false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing.rotateY(), frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
@@ -174,6 +175,11 @@ public class Wrenchest
 					case WEST: return clickedFace == Direction.NORTH ? ChestType.LEFT : ChestType.RIGHT;
 					default: return ChestType.SINGLE;
 				}
+			}
+
+			private double frac(double d)
+			{
+				return MathHelper.frac(d);
 			}
 		}.setRegistryName(new ResourceLocation(MODID, "chest_wrench")));
 	}

@@ -6,7 +6,7 @@ authors="bl4ckscor3"
 
 [[mods]] #mandatory
 modId="wrenchest" #mandatory
-version="v1.0" #mandatory
+version="v1.0.1" #mandatory
 displayName="Wrenchest" #mandatory
 description='''Makes it easy to connect chests together!''' #mandatory
 
