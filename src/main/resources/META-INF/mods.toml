@@ -10,14 +10,14 @@ version="v1.0.1" #mandatory
 displayName="Wrenchest" #mandatory
 description='''Makes it easy to connect chests together!''' #mandatory
 
-[[dependencies.chestconnector]]
+[[dependencies.wrenchest]]
     modId="forge"
     mandatory=true
     versionRange="[30,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.chestconnector]]
+[[dependencies.wrenchest]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.15,1.16)"
