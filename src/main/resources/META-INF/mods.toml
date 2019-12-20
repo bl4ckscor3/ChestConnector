@@ -1,5 +1,5 @@
 modLoader="javafml" #mandatory
-loaderVersion="[28,)" #mandatory
+loaderVersion="[30,)" #mandatory
 issueTrackerURL="https://github.com/bl4ckscor3/Wrenchest/issues"
 displayURL="http://minecraft.curseforge.com/projects/wrenchest"
 authors="bl4ckscor3"
@@ -13,13 +13,13 @@ description='''Makes it easy to connect chests together!''' #mandatory
 [[dependencies.chestconnector]]
     modId="forge"
     mandatory=true
-    versionRange="[28.0.48,)"
+    versionRange="[30,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.chestconnector]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.14,1.15)"
+    versionRange="[1.15,1.16)"
     ordering="NONE"
     side="BOTH"
