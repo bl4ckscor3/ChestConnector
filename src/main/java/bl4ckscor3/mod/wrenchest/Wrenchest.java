@@ -29,9 +29,9 @@ public class Wrenchest
 	@SubscribeEvent
 	public static void onRegisterItem(RegistryEvent.Register<Item> event)
 	{
-		event.getRegistry().register(new Item(new Item.Properties().group(ItemGroup.TOOLS).maxStackSize(1).defaultMaxDamage(256)) {
+		event.getRegistry().register(new Item(new Item.Properties().tab(ItemGroup.TAB_TOOLS).stacksTo(1).defaultDurability(256)) {
 			@Override
-			public boolean getIsRepairable(ItemStack toRepair, ItemStack repair)
+			public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair)
 			{
 				return toRepair.getItem() == this && (repair.getItem() == this || repair.getItem() == Items.IRON_INGOT);
 			}
@@ -42,7 +42,7 @@ public class Wrenchest
 				ActionResultType result = checkConnections(ctx);
 
 				if(result == ActionResultType.SUCCESS && !ctx.getPlayer().isCreative())
-					stack.damageItem(1, ctx.getPlayer(), p -> {});
+					stack.hurtAndBreak(1, ctx.getPlayer(), p -> {});
 
 				return result;
 			}
@@ -53,58 +53,58 @@ public class Wrenchest
 			 */
 			private ActionResultType checkConnections(ItemUseContext ctx)
 			{
-				if(!(ctx.getWorld().getBlockState(ctx.getPos()).getBlock() instanceof ChestBlock))
+				if(!(ctx.getLevel().getBlockState(ctx.getClickedPos()).getBlock() instanceof ChestBlock))
 					return ActionResultType.PASS;
 
-				World world = ctx.getWorld();
-				BlockPos pos = ctx.getPos();
+				World world = ctx.getLevel();
+				BlockPos pos = ctx.getClickedPos();
 				BlockState chestState = world.getBlockState(pos);
 
 				//disconnect double chests
-				if(chestState.get(ChestBlock.TYPE) != ChestType.SINGLE)
+				if(chestState.getValue(ChestBlock.TYPE) != ChestType.SINGLE)
 				{
-					Direction facingTowardsOther = ChestBlock.getDirectionToAttached(chestState);
+					Direction facingTowardsOther = ChestBlock.getConnectedDirection(chestState);
 
-					world.setBlockState(pos, chestState.with(ChestBlock.TYPE, ChestType.SINGLE));
-					world.setBlockState(pos.offset(facingTowardsOther), world.getBlockState(pos.offset(facingTowardsOther)).with(ChestBlock.TYPE, ChestType.SINGLE));
+					world.setBlockAndUpdate(pos, chestState.setValue(ChestBlock.TYPE, ChestType.SINGLE));
+					world.setBlockAndUpdate(pos.relative(facingTowardsOther), world.getBlockState(pos.relative(facingTowardsOther)).setValue(ChestBlock.TYPE, ChestType.SINGLE));
 					return ActionResultType.SUCCESS;
 				}
 				//connect single chests, UP/DOWN check is here so double chests can be disconnected by clicking on all faces
-				else if(ctx.getFace() != Direction.UP && ctx.getFace() != Direction.DOWN)
+				else if(ctx.getClickedFace() != Direction.UP && ctx.getClickedFace() != Direction.DOWN)
 				{
-					BlockPos otherPos = pos.offset(ctx.getFace());
+					BlockPos otherPos = pos.relative(ctx.getClickedFace());
 					BlockState otherState = world.getBlockState(otherPos);
 
-					if(otherState.getBlock() instanceof ChestBlock && otherState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+					if(otherState.getBlock() instanceof ChestBlock && otherState.getValue(ChestBlock.TYPE) == ChestType.SINGLE)
 					{
-						Direction facing = chestState.get(ChestBlock.FACING);
-						Direction otherFacing = otherState.get(ChestBlock.FACING);
+						Direction facing = chestState.getValue(ChestBlock.FACING);
+						Direction otherFacing = otherState.getValue(ChestBlock.FACING);
 
 						//the chests are facing (away from) each other
-						if((ctx.getFace() == facing || ctx.getFace() == otherFacing) && facing.getOpposite() == otherFacing)
+						if((ctx.getClickedFace() == facing || ctx.getClickedFace() == otherFacing) && facing.getOpposite() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), true))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), true))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has the other chest to its left/right
-						else if(ctx.getFace().rotateY() == facing || ctx.getFace().rotateYCCW() == facing)
+						else if(ctx.getClickedFace().getClockWise() == facing || ctx.getClickedFace().getCounterClockWise() == facing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the clicked chest has its neighbor to the front/back
-						else if(ctx.getFace().rotateY() == otherFacing || ctx.getFace().rotateYCCW() == otherFacing)
+						else if(ctx.getClickedFace().getClockWise() == otherFacing || ctx.getClickedFace().getCounterClockWise() == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), otherFacing, frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), otherFacing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
 						//the chests are facing in the same direction, but are placed behind each other. the case where they are standing next to each other facing the same direction is covered before
 						else if(facing == otherFacing)
 						{
-							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getFace(), facing.rotateY(), frac(ctx.getHitVec().x), frac(ctx.getHitVec().z), false))
+							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing.getClockWise(), frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 								return ActionResultType.SUCCESS;
 							else return ActionResultType.PASS;
 						}
@@ -151,8 +151,8 @@ public class Wrenchest
 				{
 					ChestType newType = getNewChestType(clickedFace, newFacing);
 
-					world.setBlockState(clickedPos, clickedState.with(ChestBlock.FACING, newFacing).with(ChestBlock.TYPE, newType));
-					world.setBlockState(otherPos, otherState.with(ChestBlock.FACING, newFacing).with(ChestBlock.TYPE, newType.opposite()));
+					world.setBlockAndUpdate(clickedPos, clickedState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType));
+					world.setBlockAndUpdate(otherPos, otherState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType.getOpposite()));
 					return true;
 				}
 
