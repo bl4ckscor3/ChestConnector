@@ -1,19 +1,19 @@
 package bl4ckscor3.mod.wrenchest;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Items;
-import net.minecraft.state.properties.ChestType;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -29,7 +29,7 @@ public class Wrenchest
 	@SubscribeEvent
 	public static void onRegisterItem(RegistryEvent.Register<Item> event)
 	{
-		event.getRegistry().register(new Item(new Item.Properties().tab(ItemGroup.TAB_TOOLS).stacksTo(1).defaultDurability(256)) {
+		event.getRegistry().register(new Item(new Item.Properties().tab(CreativeModeTab.TAB_TOOLS).stacksTo(1).defaultDurability(256)) {
 			@Override
 			public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair)
 			{
@@ -37,11 +37,11 @@ public class Wrenchest
 			}
 
 			@Override
-			public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext ctx)
+			public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext ctx)
 			{
-				ActionResultType result = checkConnections(ctx);
+				InteractionResult result = checkConnections(ctx);
 
-				if(result == ActionResultType.SUCCESS && !ctx.getPlayer().isCreative())
+				if(result == InteractionResult.SUCCESS && !ctx.getPlayer().isCreative())
 					stack.hurtAndBreak(1, ctx.getPlayer(), p -> {});
 
 				return result;
@@ -51,12 +51,12 @@ public class Wrenchest
 			 * Checks which way two chests might be facing each other and then connects them
 			 * @see Item#onItemUseFirst
 			 */
-			private ActionResultType checkConnections(ItemUseContext ctx)
+			private InteractionResult checkConnections(UseOnContext ctx)
 			{
 				if(!(ctx.getLevel().getBlockState(ctx.getClickedPos()).getBlock() instanceof ChestBlock))
-					return ActionResultType.PASS;
+					return InteractionResult.PASS;
 
-				World world = ctx.getLevel();
+				Level world = ctx.getLevel();
 				BlockPos pos = ctx.getClickedPos();
 				BlockState chestState = world.getBlockState(pos);
 
@@ -67,7 +67,7 @@ public class Wrenchest
 
 					world.setBlockAndUpdate(pos, chestState.setValue(ChestBlock.TYPE, ChestType.SINGLE));
 					world.setBlockAndUpdate(pos.relative(facingTowardsOther), world.getBlockState(pos.relative(facingTowardsOther)).setValue(ChestBlock.TYPE, ChestType.SINGLE));
-					return ActionResultType.SUCCESS;
+					return InteractionResult.SUCCESS;
 				}
 				//connect single chests, UP/DOWN check is here so double chests can be disconnected by clicking on all faces
 				else if(ctx.getClickedFace() != Direction.UP && ctx.getClickedFace() != Direction.DOWN)
@@ -84,34 +84,34 @@ public class Wrenchest
 						if((ctx.getClickedFace() == facing || ctx.getClickedFace() == otherFacing) && facing.getOpposite() == otherFacing)
 						{
 							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), true))
-								return ActionResultType.SUCCESS;
-							else return ActionResultType.PASS;
+								return InteractionResult.SUCCESS;
+							else return InteractionResult.PASS;
 						}
 						//the clicked chest has the other chest to its left/right
 						else if(ctx.getClickedFace().getClockWise() == facing || ctx.getClickedFace().getCounterClockWise() == facing)
 						{
 							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
-								return ActionResultType.SUCCESS;
-							else return ActionResultType.PASS;
+								return InteractionResult.SUCCESS;
+							else return InteractionResult.PASS;
 						}
 						//the clicked chest has its neighbor to the front/back
 						else if(ctx.getClickedFace().getClockWise() == otherFacing || ctx.getClickedFace().getCounterClockWise() == otherFacing)
 						{
 							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), otherFacing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
-								return ActionResultType.SUCCESS;
-							else return ActionResultType.PASS;
+								return InteractionResult.SUCCESS;
+							else return InteractionResult.PASS;
 						}
 						//the chests are facing in the same direction, but are placed behind each other. the case where they are standing next to each other facing the same direction is covered before
 						else if(facing == otherFacing)
 						{
 							if(connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing.getClockWise(), frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
-								return ActionResultType.SUCCESS;
-							else return ActionResultType.PASS;
+								return InteractionResult.SUCCESS;
+							else return InteractionResult.PASS;
 						}
 					}
 				}
 
-				return ActionResultType.PASS;
+				return InteractionResult.PASS;
 			}
 
 			/**
@@ -128,7 +128,7 @@ public class Wrenchest
 			 * @param swapDirections Whether to swap the directions to check the hit data on
 			 * @return true if the chests were connected, false otherwise
 			 */
-			private boolean connectChests(World world, BlockPos clickedPos, BlockPos otherPos, BlockState clickedState, BlockState otherState, Direction clickedFace, Direction chestFacing, double hitX, double hitZ, boolean swapDirections)
+			private boolean connectChests(Level world, BlockPos clickedPos, BlockPos otherPos, BlockState clickedState, BlockState otherState, Direction clickedFace, Direction chestFacing, double hitX, double hitZ, boolean swapDirections)
 			{
 				Direction newFacing = Direction.UP;
 
@@ -179,7 +179,7 @@ public class Wrenchest
 
 			private double frac(double d)
 			{
-				return MathHelper.frac(d);
+				return Mth.frac(d);
 			}
 		}.setRegistryName(new ResourceLocation(MODID, "chest_wrench")));
 	}
