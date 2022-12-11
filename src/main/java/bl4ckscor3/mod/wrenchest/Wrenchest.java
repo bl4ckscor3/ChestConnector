@@ -4,7 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTab.TabVisibility;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -26,7 +29,7 @@ import net.minecraftforge.registries.RegistryObject;
 public class Wrenchest {
 	public static final String MODID = "wrenchest";
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-	public static final RegistryObject<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().tab(CreativeModeTab.TAB_TOOLS).stacksTo(1).defaultDurability(256)) {
+	public static final RegistryObject<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().stacksTo(1).defaultDurability(256)) {
 		@Override
 		public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 			return toRepair.getItem() == this && (repair.getItem() == this || repair.getItem() == Items.IRON_INGOT);
@@ -51,22 +54,22 @@ public class Wrenchest {
 			if (!(ctx.getLevel().getBlockState(ctx.getClickedPos()).getBlock() instanceof ChestBlock))
 				return InteractionResult.PASS;
 
-			Level world = ctx.getLevel();
+			Level level = ctx.getLevel();
 			BlockPos pos = ctx.getClickedPos();
-			BlockState chestState = world.getBlockState(pos);
+			BlockState chestState = level.getBlockState(pos);
 
 			//disconnect double chests
 			if (chestState.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
 				Direction facingTowardsOther = ChestBlock.getConnectedDirection(chestState);
 
-				world.setBlockAndUpdate(pos, chestState.setValue(ChestBlock.TYPE, ChestType.SINGLE));
-				world.setBlockAndUpdate(pos.relative(facingTowardsOther), world.getBlockState(pos.relative(facingTowardsOther)).setValue(ChestBlock.TYPE, ChestType.SINGLE));
+				level.setBlockAndUpdate(pos, chestState.setValue(ChestBlock.TYPE, ChestType.SINGLE));
+				level.setBlockAndUpdate(pos.relative(facingTowardsOther), level.getBlockState(pos.relative(facingTowardsOther)).setValue(ChestBlock.TYPE, ChestType.SINGLE));
 				return InteractionResult.SUCCESS;
 			}
 			//connect single chests, UP/DOWN check is here so double chests can be disconnected by clicking on all faces
 			else if (ctx.getClickedFace() != Direction.UP && ctx.getClickedFace() != Direction.DOWN) {
 				BlockPos otherPos = pos.relative(ctx.getClickedFace());
-				BlockState otherState = world.getBlockState(otherPos);
+				BlockState otherState = level.getBlockState(otherPos);
 
 				if (otherState.getBlock() instanceof ChestBlock && otherState.getValue(ChestBlock.TYPE) == ChestType.SINGLE) {
 					Direction facing = chestState.getValue(ChestBlock.FACING);
@@ -74,28 +77,28 @@ public class Wrenchest {
 
 					//the chests are facing (away from) each other
 					if ((ctx.getClickedFace() == facing || ctx.getClickedFace() == otherFacing) && facing.getOpposite() == otherFacing) {
-						if (connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), true))
+						if (connectChests(level, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), true))
 							return InteractionResult.SUCCESS;
 						else
 							return InteractionResult.PASS;
 					}
 					//the clicked chest has the other chest to its left/right
 					else if (ctx.getClickedFace().getClockWise() == facing || ctx.getClickedFace().getCounterClockWise() == facing) {
-						if (connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
+						if (connectChests(level, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 							return InteractionResult.SUCCESS;
 						else
 							return InteractionResult.PASS;
 					}
 					//the clicked chest has its neighbor to the front/back
 					else if (ctx.getClickedFace().getClockWise() == otherFacing || ctx.getClickedFace().getCounterClockWise() == otherFacing) {
-						if (connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), otherFacing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
+						if (connectChests(level, pos, otherPos, chestState, otherState, ctx.getClickedFace(), otherFacing, frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 							return InteractionResult.SUCCESS;
 						else
 							return InteractionResult.PASS;
 					}
 					//the chests are facing in the same direction, but are placed behind each other. the case where they are standing next to each other facing the same direction is covered before
 					else if (facing == otherFacing) {
-						if (connectChests(world, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing.getClockWise(), frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
+						if (connectChests(level, pos, otherPos, chestState, otherState, ctx.getClickedFace(), facing.getClockWise(), frac(ctx.getClickLocation().x), frac(ctx.getClickLocation().z), false))
 							return InteractionResult.SUCCESS;
 						else
 							return InteractionResult.PASS;
@@ -109,7 +112,7 @@ public class Wrenchest {
 		/**
 		 * Connects two chests with each other based on hit data
 		 *
-		 * @param world The world the two chests are in
+		 * @param level The world the two chests are in
 		 * @param clickedPos The position of the clicked chest
 		 * @param otherPos The position of the chest to connect the clicked chest to
 		 * @param clickedState The state of the clicked chest
@@ -122,7 +125,7 @@ public class Wrenchest {
 		 * @param swapDirections Whether to swap the directions to check the hit data on
 		 * @return true if the chests were connected, false otherwise
 		 */
-		private boolean connectChests(Level world, BlockPos clickedPos, BlockPos otherPos, BlockState clickedState, BlockState otherState, Direction clickedFace, Direction chestFacing, double hitX, double hitZ, boolean swapDirections) {
+		private boolean connectChests(Level level, BlockPos clickedPos, BlockPos otherPos, BlockState clickedState, BlockState otherState, Direction clickedFace, Direction chestFacing, double hitX, double hitZ, boolean swapDirections) {
 			Direction newFacing = Direction.UP;
 
 			if (!swapDirections) {
@@ -141,8 +144,8 @@ public class Wrenchest {
 			if (newFacing != Direction.UP) {
 				ChestType newType = getNewChestType(clickedFace, newFacing);
 
-				world.setBlockAndUpdate(clickedPos, clickedState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType));
-				world.setBlockAndUpdate(otherPos, otherState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType.getOpposite()));
+				level.setBlockAndUpdate(clickedPos, clickedState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType));
+				level.setBlockAndUpdate(otherPos, otherState.setValue(ChestBlock.FACING, newFacing).setValue(ChestBlock.TYPE, newType.getOpposite()));
 				return true;
 			}
 
@@ -173,5 +176,11 @@ public class Wrenchest {
 
 	public Wrenchest() {
 		ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+	}
+
+	@SubscribeEvent
+	public static void onCreativeModeTabBuildContents(CreativeModeTabEvent.BuildContents event) {
+		if (event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES)
+			event.getEntries().putBefore(new ItemStack(Items.FISHING_ROD), new ItemStack(CHEST_WRENCH.get()), TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 }
