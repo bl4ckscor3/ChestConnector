@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -179,8 +179,8 @@ public class Wrenchest {
 	}
 
 	@SubscribeEvent
-	public static void onCreativeModeTabBuildContents(CreativeModeTabEvent.BuildContents event) {
-		if (event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES)
+	public static void onCreativeModeTabBuildContents(BuildCreativeModeTabContentsEvent event) {
+		if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
 			event.getEntries().putBefore(new ItemStack(Items.FISHING_ROD), new ItemStack(CHEST_WRENCH.get()), TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 }
