@@ -20,16 +20,15 @@ import net.neoforged.fml.common.Mod.EventBusSubscriber;
 import net.neoforged.fml.common.Mod.EventBusSubscriber.Bus;
 import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.ForgeRegistries;
-import net.neoforged.neoforge.registries.RegistryObject;
 
 @Mod(Wrenchest.MODID)
 @EventBusSubscriber(bus = Bus.MOD)
 public class Wrenchest {
 	public static final String MODID = "wrenchest";
-	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-	public static final RegistryObject<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().stacksTo(1).defaultDurability(256)) {
+	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+	public static final DeferredItem<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().stacksTo(1).defaultDurability(256)) {
 		@Override
 		public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 			return toRepair.getItem() == this && (repair.getItem() == this || repair.getItem() == Items.IRON_INGOT);
