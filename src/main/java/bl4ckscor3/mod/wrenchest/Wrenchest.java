@@ -1,9 +1,11 @@
 package bl4ckscor3.mod.wrenchest;
 
+import static net.minecraft.util.Mth.frac;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.CreativeModeTab.TabVisibility;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -14,11 +16,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.common.Mod.EventBusSubscriber;
-import net.neoforged.fml.common.Mod.EventBusSubscriber.Bus;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -28,7 +30,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class Wrenchest {
 	public static final String MODID = "wrenchest";
 	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
-	public static final DeferredItem<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().stacksTo(1).defaultDurability(256)) {
+	public static final DeferredItem<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().durability(256)) {
 		@Override
 		public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 			return toRepair.getItem() == this && (repair.getItem() == this || repair.getItem() == Items.IRON_INGOT);
@@ -39,7 +41,7 @@ public class Wrenchest {
 			InteractionResult result = checkConnections(ctx);
 
 			if (result == InteractionResult.SUCCESS && !ctx.getPlayer().isCreative())
-				stack.hurtAndBreak(1, ctx.getPlayer(), p -> {});
+				stack.hurtAndBreak(1, ctx.getPlayer(), LivingEntity.getSlotForHand(ctx.getHand()));
 
 			return result;
 		}
@@ -167,14 +169,10 @@ public class Wrenchest {
 				default -> ChestType.SINGLE;
 			};
 		}
-
-		private double frac(double d) {
-			return Mth.frac(d);
-		}
 	});
 
-	public Wrenchest() {
-		ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+	public Wrenchest(IEventBus modEventBus) {
+		ITEMS.register(modEventBus);
 	}
 
 	@SubscribeEvent

@@ -9,3 +9,5 @@
 .classpath
 .project
 .idea/
+
+src/generated/resources/.cache/

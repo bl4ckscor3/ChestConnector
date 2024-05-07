@@ -1,42 +1,56 @@
-plugins {  
-    id 'java-library'  
-    id 'eclipse'  
-    id 'idea'  
-    id 'net.neoforged.gradle.userdev' version '[7.0,7.1)'  
-//	id 'org.parchmentmc.librarian.forgegradle' version '1.+'  
-} 
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'net.neoforged.gradle.userdev' version '7.0.105'
+}
 
 version = '1.0.2'
 group = 'bl4ckscor3.mod.wrenchest'
 
 base {
-	archivesName = 'wrenchest-1.20.2'
+	archivesName = 'wrenchest-1.20.6'
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 
-runs { 
-    configureEach { 
-        systemProperty 'forge.logging.console.level', 'debug' 
-        modSource project.sourceSets.main 
-    } 
- 
-    client { 
-        workingDirectory project.file('run/client') 
-    } 
- 
-    server { 
-        workingDirectory project.file('run/server') 
-        programArgument '-nogui' 
-    } 
-} 
+processResources {
+	exclude ".cache"
+}
+
+sourceSets.main.resources {
+	srcDir 'src/generated/resources' //include generated files
+}
+
+runs {
+    configureEach {
+        systemProperty 'forge.logging.console.level', 'debug'
+        modSource project.sourceSets.main
+    }
+
+    client {
+        workingDirectory project.file('run/client')
+    }
+
+    server {
+        workingDirectory project.file('run/server')
+        programArgument '-nogui'
+    }
+
+    data {
+		workingDirectory project.file('run/data')
+		programArguments.addAll '--mod', 'wrenchest', '--all', '--output', file('src/generated/resources/').getAbsolutePath()
+	}
+}
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.2.59-beta' 
+    implementation 'net.neoforged:neoforge:20.6.42-beta'
 }
 
 tasks.named('jar', Jar).configure {
+	exclude('bl4ckscor3/mod/wrenchest/datagen/**') //exclude files from the built jar that are only used to generate the assets & data
+
     manifest {
         attributes(["Specification-Title": "Wrenchest",
                     "Specification-Vendor": "bl4ckscor3",
@@ -49,4 +63,5 @@ tasks.named('jar', Jar).configure {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+	options.release = 21
 }
