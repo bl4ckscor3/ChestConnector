@@ -178,6 +178,6 @@ public class Wrenchest {
 	@SubscribeEvent
 	public static void onCreativeModeTabBuildContents(BuildCreativeModeTabContentsEvent event) {
 		if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
-			event.getEntries().putBefore(new ItemStack(Items.FISHING_ROD), new ItemStack(CHEST_WRENCH.get()), TabVisibility.PARENT_AND_SEARCH_TABS);
+			event.insertBefore(new ItemStack(Items.FISHING_ROD), new ItemStack(CHEST_WRENCH.get()), TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 }
