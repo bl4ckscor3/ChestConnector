@@ -30,12 +30,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class Wrenchest {
 	public static final String MODID = "wrenchest";
 	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
-	public static final DeferredItem<Item> CHEST_WRENCH = ITEMS.register("chest_wrench", () -> new Item(new Item.Properties().durability(256)) {
-		@Override
-		public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-			return toRepair.getItem() == this && (repair.getItem() == this || repair.getItem() == Items.IRON_INGOT);
-		}
-
+	public static final DeferredItem<Item> CHEST_WRENCH = ITEMS.registerItem("chest_wrench", p -> new Item(p) {
 		@Override
 		public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext ctx) {
 			InteractionResult result = checkConnections(ctx);
@@ -169,7 +164,7 @@ public class Wrenchest {
 				default -> ChestType.SINGLE;
 			};
 		}
-	});
+	}, new Item.Properties().durability(256).repairable(Items.IRON_INGOT));
 
 	public Wrenchest(IEventBus modEventBus) {
 		ITEMS.register(modEventBus);

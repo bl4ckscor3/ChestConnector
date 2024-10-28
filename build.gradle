@@ -9,7 +9,7 @@ version = '1.0.3'
 group = 'bl4ckscor3.mod.wrenchest'
 
 base {
-	archivesName = 'wrenchest-1.21'
+	archivesName = 'wrenchest-1.21.3'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -35,17 +35,17 @@ runs {
 
     server {
         workingDirectory project.file('run/server')
-        programArgument '-nogui'
+        argument '-nogui'
     }
 
     data {
 		workingDirectory project.file('run/data')
-		programArguments.addAll '--mod', 'wrenchest', '--all', '--output', file('src/generated/resources/').getAbsolutePath()
+		arguments.addAll '--mod', 'wrenchest', '--all', '--output', file('src/generated/resources/').getAbsolutePath()
 	}
 }
 
 dependencies {
-	implementation 'net.neoforged:neoforge:21.0.76-beta'
+	implementation 'net.neoforged:neoforge:21.3.4-beta'
 }
 
 tasks.named('jar', Jar).configure {

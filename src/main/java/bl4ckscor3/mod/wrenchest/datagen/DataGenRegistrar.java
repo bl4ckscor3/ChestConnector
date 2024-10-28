@@ -25,7 +25,7 @@ public class DataGenRegistrar {
 		DataGenerator generator = event.getGenerator();
 		PackOutput output = generator.getPackOutput();
 
-		generator.addProvider(event.includeServer(), new RecipeGenerator(output, event.getLookupProvider()));
+		generator.addProvider(event.includeServer(), new RecipeGenerator.Runner(output, event.getLookupProvider()));
 		//@formatter:off
 		generator.addProvider(true, new PackMetadataGenerator(output)
 				.add(PackMetadataSection.TYPE, new PackMetadataSection(Component.literal("Wrenchest resources & data"),

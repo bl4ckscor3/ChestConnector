@@ -4,6 +4,7 @@
 /.settings
 /logs
 /run
+/runs
 /.settings
 *.launch
 .classpath
